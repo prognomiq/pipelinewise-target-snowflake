@@ -88,7 +88,7 @@ def add_metadata_values_to_record(record_message):
     """
     extended_record = record_message['record']
     extended_record['_sdc_extracted_at'] = record_message.get('time_extracted')
-    extended_record['_sdc_batched_at'] = datetime.now().isoformat()
+    extended_record['_sdc_batched_at'] = datetime.utcnow().isoformat()
     extended_record['_sdc_deleted_at'] = record_message.get('record', {}).get('_sdc_deleted_at')
 
     return extended_record
