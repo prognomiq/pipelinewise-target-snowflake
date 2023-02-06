@@ -143,7 +143,7 @@ def persist_lines(config, lines, table_cache=None, file_format_type: FileFormatT
             stream_utils.adjust_timestamps_in_record(o['record'], schemas[stream])
 
             # Validate record
-            if config.get('validate_records'):
+            if config.get('validate_records') or config.get('strict_except', None) is not None:
                 try:
                     validators[stream].validate(stream_utils.float_to_decimal(o['record']))
                 except Exception as ex:
@@ -228,6 +228,8 @@ def persist_lines(config, lines, table_cache=None, file_format_type: FileFormatT
 
             stream = o['stream']
             new_schema = stream_utils.float_to_decimal(o['schema'])
+
+            set_validation_strictness(config, new_schema)
 
             # Update and flush only if the the schema is new or different than
             # the previously used version of the schema
@@ -333,6 +335,18 @@ def persist_lines(config, lines, table_cache=None, file_format_type: FileFormatT
 
     # emit latest state
     emit_state(copy.deepcopy(flushed_state))
+
+
+def set_validation_strictness(config, new_schema):
+    '''
+    Error on extra / missing properties as part of JSON schema validation.  Added to target because singer-python module
+    doesn't yet recognize JSON Schema Draft 7 validation directives such as `required`, so taps don't yet preserve
+    them in their schema messages.  See https://github.com/singer-io/singer-python/issues/163.
+    '''
+    strict_except = config.get('strict_except', None)
+    if strict_except is not None:
+        new_schema['additionalProperties'] = False
+        new_schema['required'] = [k for k in new_schema['properties'] if k not in strict_except]
 
 
 # pylint: disable=too-many-arguments
