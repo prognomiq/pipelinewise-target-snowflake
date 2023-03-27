@@ -436,6 +436,10 @@ def load_stream_batch(stream, records, row_count, db_sync, no_compression=False,
     """Load one batch of the stream into target table"""
     # Load into snowflake
     if row_count[stream] > 0:
+        if should_load_from_source(db_sync):
+            load_from_source(stream, records, db_sync, temp_dir)
+            return
+
         flush_records(stream, records, db_sync, temp_dir, no_compression, archive_load_files)
 
         # Delete soft-deleted, flagged rows - where _sdc_deleted at is not null
@@ -444,6 +448,41 @@ def load_stream_batch(stream, records, row_count, db_sync, no_compression=False,
 
         # reset row count for the current stream
         row_count[stream] = 0
+
+
+def should_load_from_source(db_sync):
+    return 'source_file_property' in db_sync.connection_config
+
+
+def load_from_source(stream: str,
+                     records: Dict,
+                     db_sync: DbSync,
+                     temp_dir: str = None,
+                     ) -> None:
+    batch_load_property_names = ['source_bucket_property', 'source_file_property', 'source_line_number_property']
+
+    source_bucket_property = db_sync.connection_config['source_bucket_property']
+    source_file_property = db_sync.connection_config['source_file_property']
+    loaded_sources = set()
+    for record in records.values():
+        source_bucket = record[source_bucket_property]
+        source_file = record[source_file_property]
+
+        file_uri = '/'.join([source_bucket, source_file])
+        if file_uri in loaded_sources:
+            continue
+
+        row_count = -1
+        size_bytes = -1
+
+        filepath = file_uri.removeprefix('file://')
+        if filepath == file_uri:
+            key = source_file
+        else:
+            key = db_sync.put_to_stage(filepath, stream, row_count, temp_dir=temp_dir)
+        db_sync.load_file(key, row_count, size_bytes)
+
+        loaded_sources.add(file_uri)
 
 
 def flush_records(stream: str,
