@@ -17,9 +17,9 @@ def create_copy_sql(table_name: str,
     """Generate a CSV compatible snowflake COPY INTO command"""
     p_columns = ', '.join([c['name'] for c in columns])
 
-    return f"COPY INTO {table_name} ({p_columns}) " \
-           f"FROM '@{stage_name}/{s3_key}' " \
-           f"FILE_FORMAT = (format_name='{file_format_name}')"
+    select_statement = select_from_stage(columns, file_format_name, s3_key, stage_name)
+
+    return f"COPY INTO {table_name} ({p_columns}) FROM ({select_statement})"
 
 
 def create_merge_sql(table_name: str,
@@ -29,20 +29,37 @@ def create_merge_sql(table_name: str,
                      columns: List,
                      pk_merge_condition: str) -> str:
     """Generate a CSV compatible snowflake MERGE INTO command"""
-    p_source_columns = ', '.join([f"{c['trans']}(${i + 1}) {c['name']}" for i, c in enumerate(columns)])
     p_update = ', '.join([f"{c['name']}=s.{c['name']}" for c in columns])
     p_insert_cols = ', '.join([c['name'] for c in columns])
     p_insert_values = ', '.join([f"s.{c['name']}" for c in columns])
 
-    return f"MERGE INTO {table_name} t USING (" \
-           f"SELECT {p_source_columns} " \
-           f"FROM '@{stage_name}/{s3_key}' " \
-           f"(FILE_FORMAT => '{file_format_name}')) s " \
+    select_statement = select_from_stage(columns, file_format_name, s3_key, stage_name)
+
+    return f"MERGE INTO {table_name} t USING ({select_statement}) s " \
            f"ON {pk_merge_condition} " \
            f"WHEN MATCHED THEN UPDATE SET {p_update} " \
            "WHEN NOT MATCHED THEN " \
            f"INSERT ({p_insert_cols}) " \
            f"VALUES ({p_insert_values})"
+
+
+def select_from_stage(columns, file_format_name, s3_key, stage_name):
+    column_expressions = []
+    idx = 0
+    for column in columns:
+        expr = column['value']
+        if not expr:
+            idx += 1
+            expr = f"{column['trans']}(${idx})"
+        full_expr = ' '.join([expr, column['name']])
+        column_expressions.append(full_expr)
+
+    p_source_columns = ', '.join(column_expressions)
+
+    select_from_stage = f"SELECT {p_source_columns} " \
+                        f"FROM '@{stage_name}/{s3_key}' " \
+                        f"(FILE_FORMAT => '{file_format_name}')"
+    return select_from_stage
 
 
 def record_to_csv_line(record: dict,

@@ -459,10 +459,11 @@ def load_from_source(stream: str,
                      db_sync: DbSync,
                      temp_dir: str = None,
                      ) -> None:
-    batch_load_property_names = ['source_bucket_property', 'source_file_property', 'source_line_number_property']
 
     source_bucket_property = db_sync.connection_config['source_bucket_property']
     source_file_property = db_sync.connection_config['source_file_property']
+    source_line_number_property = db_sync.connection_config['source_line_number_property']
+
     loaded_sources = set()
     for record in records.values():
         source_bucket = record[source_bucket_property]
@@ -480,7 +481,17 @@ def load_from_source(stream: str,
             key = source_file
         else:
             key = db_sync.put_to_stage(filepath, stream, row_count, temp_dir=temp_dir)
-        db_sync.load_file(key, row_count, size_bytes)
+
+        metadata_columns = {
+            source_bucket_property: f"'{record[source_bucket_property]}'",
+            source_file_property: f"'{record[source_file_property]}'",
+            source_line_number_property: "metadata$file_row_number",
+            "_sdc_batched_at": "current_timestamp()",
+            "_sdc_extracted_at": "null",
+            "_sdc_deleted_at": "null",
+        }
+
+        db_sync.load_file(key, row_count, size_bytes, metadata_columns)
 
         loaded_sources.add(file_uri)
 
