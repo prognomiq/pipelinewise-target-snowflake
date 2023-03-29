@@ -565,21 +565,8 @@ class DbSync:
         p_temp = 'TEMP ' if is_temporary else ''
         p_table_name = self.table_name(stream_schema_message['stream'], is_temporary)
         p_columns = ', '.join(columns + primary_key)
-
-        if is_temporary:
-            data_retention_time_in_days = 0
-        else:
-            data_retention_time_in_days = self.get_schema_data_retention_time_in_days()
-        p_extra = f'data_retention_time_in_days = {data_retention_time_in_days}'
-
+        p_extra = 'data_retention_time_in_days = 0 ' if is_temporary else 'data_retention_time_in_days = 1 '
         return f'CREATE {p_temp}TABLE IF NOT EXISTS {p_table_name} ({p_columns}) {p_extra}'
-
-    def get_schema_data_retention_time_in_days(self):
-        statement = f"SHOW PARAMETERS LIKE 'DATA_RETENTION_TIME_IN_DAYS' IN SCHEMA {self.schema_name}"
-        results = self.query(statement)
-        result = results[0]
-        data_retention_time_in_days = result['value']
-        return data_retention_time_in_days
 
     def grant_usage_on_schema(self, schema_name, grantee):
         """Grant usage on schema"""
