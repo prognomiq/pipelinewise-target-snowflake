@@ -436,17 +436,21 @@ class DbSync:
         table_name = self.table_name(stream, False, without_schema=True)
         return f"{self.schema_name}.%{table_name}"
 
-    def load_file(self, s3_key, count, size_bytes):
+    def load_file(self, s3_key, count, size_bytes, metadata_columns: Dict = None):
         """Load a supported file type from snowflake stage into target table"""
         stream = self.stream_schema_message['stream']
         self.logger.info("Loading %d rows into '%s'", count, self.table_name(stream, False))
+
+        if not metadata_columns:
+            metadata_columns = {}
 
         # Get list if columns with types
         columns_with_trans = [
             {
                 "name": safe_column_name(name),
                 "json_element_name": json_element_name(name),
-                "trans": column_trans(schema)
+                "trans": column_trans(schema),
+                "value": metadata_columns.get(name, None),
             }
             for (name, schema) in self.flatten_schema.items()
         ]
