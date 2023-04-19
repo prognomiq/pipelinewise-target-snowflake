@@ -834,7 +834,7 @@ class DbSync:
         """
         table_name = self.table_name(self.stream_schema_message['stream'], False)
         current_pks = self._get_current_pks()
-        new_pks = [pk.upper() for pk in self.stream_schema_message.get('key_properties', [])]
+        new_pks = set(pk.upper() for pk in self.stream_schema_message.get('key_properties', []))
 
         queries = []
 
@@ -858,12 +858,12 @@ class DbSync:
             queries.append(f'alter table {table_name} add primary key({pk_list});')
 
         # For now, we don't wish to enforce non-nullability on the pk columns
-        for pk in set(current_pks).union(set(new_pks)):
+        for pk in current_pks.union(new_pks):
             queries.append(f'alter table {table_name} alter column {safe_column_name(pk)} drop not null;')
 
         self.query(queries)
 
-    def _get_current_pks(self) -> list[str]:
+    def _get_current_pks(self) -> Set[str]:
         """
         Finds the stream's current Pk in Snowflake.
         Returns: Set of pk columns, in upper case. Empty means table has no PK
@@ -872,7 +872,7 @@ class DbSync:
 
         show_query = f"show primary keys in table {self.connection_config['dbname']}.{table_name};"
 
-        columns = []
+        columns = set()
         try:
             columns = self.query(show_query)
 
@@ -883,4 +883,4 @@ class DbSync:
             if not re.match(r'002043 \(02000\):.*\n.*does not exist.*', str(sys.exc_info()[1])):
                 raise exc
 
-        return [col['column_name'] for col in columns]
+        return set(col['column_name'] for col in columns)
