@@ -883,4 +883,4 @@ class DbSync:
             if not re.match(r'002043 \(02000\):.*\n.*does not exist.*', str(sys.exc_info()[1])):
                 raise exc
 
-        return [col['column_name'] for col in columns]
+        return [col['column_name'] for col in sorted(columns, key=lambda d: d['key_sequence'])]
