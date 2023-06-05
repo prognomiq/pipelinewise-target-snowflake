@@ -509,7 +509,8 @@ class DbSync:
                     s3_key=s3_key,
                     file_format_name=self.connection_config['file_format'],
                     columns=columns_with_trans,
-                    pk_merge_condition=self.primary_key_merge_condition()
+                    pk_merge_condition=self.primary_key_merge_condition(),
+                    restrict_file_pattern=self.should_load_from_source,
                 )
                 self.logger.debug('Running query: %s', merge_sql)
                 cur.execute(merge_sql)
@@ -530,7 +531,8 @@ class DbSync:
                     stage_name=self.get_stage_name(stream),
                     s3_key=s3_key,
                     file_format_name=self.connection_config['file_format'],
-                    columns=columns_with_trans
+                    columns=columns_with_trans,
+                    restrict_file_pattern = self.should_load_from_source,
                 )
                 self.logger.debug('Running query: %s', copy_sql)
                 cur.execute(copy_sql)
@@ -884,3 +886,7 @@ class DbSync:
                 raise exc
 
         return [col['column_name'] for col in sorted(columns, key=lambda d: d['key_sequence'])]
+
+    @property
+    def should_load_from_source(self):
+        return 'source_file_property' in self.connection_config

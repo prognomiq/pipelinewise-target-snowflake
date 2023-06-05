@@ -13,11 +13,13 @@ def create_copy_sql(table_name: str,
                     stage_name: str,
                     s3_key: str,
                     file_format_name: str,
-                    columns: List):
+                    columns: List,
+                    restrict_file_pattern: bool = False,
+                    ) -> str:
     """Generate a CSV compatible snowflake COPY INTO command"""
     p_columns = ', '.join([c['name'] for c in columns])
 
-    select_statement = select_from_stage(columns, file_format_name, s3_key, stage_name)
+    select_statement = select_from_stage(columns, file_format_name, s3_key, stage_name, restrict_file_pattern)
 
     return f"COPY INTO {table_name} ({p_columns}) FROM ({select_statement})"
 
@@ -27,13 +29,15 @@ def create_merge_sql(table_name: str,
                      s3_key: str,
                      file_format_name: str,
                      columns: List,
-                     pk_merge_condition: str) -> str:
+                     pk_merge_condition: str,
+                     restrict_file_pattern: bool = False,
+                     ) -> str:
     """Generate a CSV compatible snowflake MERGE INTO command"""
     p_update = ', '.join([f"{c['name']}=s.{c['name']}" for c in columns])
     p_insert_cols = ', '.join([c['name'] for c in columns])
     p_insert_values = ', '.join([f"s.{c['name']}" for c in columns])
 
-    select_statement = select_from_stage(columns, file_format_name, s3_key, stage_name)
+    select_statement = select_from_stage(columns, file_format_name, s3_key, stage_name, restrict_file_pattern)
 
     return f"MERGE INTO {table_name} t USING ({select_statement}) s " \
            f"ON {pk_merge_condition} " \
@@ -43,7 +47,7 @@ def create_merge_sql(table_name: str,
            f"VALUES ({p_insert_values})"
 
 
-def select_from_stage(columns, file_format_name, s3_key, stage_name):
+def select_from_stage(columns, file_format_name, s3_key, stage_name, restrict_file_pattern=False):
     column_expressions = []
     idx = 0
     for column in columns:
@@ -56,10 +60,15 @@ def select_from_stage(columns, file_format_name, s3_key, stage_name):
 
     p_source_columns = ', '.join(column_expressions)
 
-    select_from_stage = f"SELECT {p_source_columns} " \
-                        f"FROM '@{stage_name}/{s3_key}' " \
-                        f"(FILE_FORMAT => '{file_format_name}'," \
-                        f"PATTERN => '{s3_key}')" # Include the s3_key as a pattern, to exclude other keys that have this key as a prefix
+    select_options = {
+        'FILE_FORMAT': file_format_name,
+    }
+    if restrict_file_pattern:
+        # Include the s3_key as a pattern, to exclude other keys that have this key as a prefix
+        select_options['PATTERN'] = s3_key
+    options_clause = ', '.join([f"{k} => '{v}'" for k, v in select_options.items()])
+
+    select_from_stage = f"SELECT {p_source_columns} FROM '@{stage_name}/{s3_key}' ({options_clause})"
     return select_from_stage
 
 

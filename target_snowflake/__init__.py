@@ -436,7 +436,7 @@ def load_stream_batch(stream, records, row_count, db_sync, no_compression=False,
     """Load one batch of the stream into target table"""
     # Load into snowflake
     if row_count[stream] > 0:
-        if should_load_from_source(db_sync):
+        if db_sync.should_load_from_source:
             load_from_source(stream, records, db_sync, temp_dir)
             return
 
@@ -448,10 +448,6 @@ def load_stream_batch(stream, records, row_count, db_sync, no_compression=False,
 
         # reset row count for the current stream
         row_count[stream] = 0
-
-
-def should_load_from_source(db_sync):
-    return 'source_file_property' in db_sync.connection_config
 
 
 def load_from_source(stream: str,
