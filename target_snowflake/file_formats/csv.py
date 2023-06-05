@@ -58,7 +58,8 @@ def select_from_stage(columns, file_format_name, s3_key, stage_name):
 
     select_from_stage = f"SELECT {p_source_columns} " \
                         f"FROM '@{stage_name}/{s3_key}' " \
-                        f"(FILE_FORMAT => '{file_format_name}')"
+                        f"(FILE_FORMAT => '{file_format_name}'," \
+                        f"PATTERN => '{s3_key}')" # Include the s3_key as a pattern, to exclude other keys that have this key as a prefix
     return select_from_stage
 
 
