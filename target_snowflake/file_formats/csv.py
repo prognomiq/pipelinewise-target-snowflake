@@ -2,6 +2,7 @@
 import gzip
 import json
 import os
+import re
 
 from typing import Callable, Dict, List
 from tempfile import mkstemp
@@ -65,7 +66,7 @@ def select_from_stage(columns, file_format_name, s3_key, stage_name, restrict_fi
     }
     if restrict_file_pattern:
         # Include the s3_key as a pattern, to exclude other keys that have this key as a prefix
-        select_options['PATTERN'] = s3_key
+        select_options['PATTERN'] = re.escape(s3_key)
     options_clause = ', '.join([f"{k} => '{v}'" for k, v in select_options.items()])
 
     select_from_stage = f"SELECT {p_source_columns} FROM '@{stage_name}/{s3_key}' ({options_clause})"
