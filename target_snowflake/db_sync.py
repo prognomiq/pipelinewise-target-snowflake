@@ -865,7 +865,7 @@ class DbSync:
 
         self.query(queries)
 
-    def _get_current_pks(self) -> list[str]:
+    def _get_current_pks(self) -> List[str]:
         """
         Finds the stream's current Pk in Snowflake.
         Returns: Set of pk columns, in upper case. Empty means table has no PK
