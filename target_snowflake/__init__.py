@@ -169,7 +169,7 @@ def persist_lines(config, lines, table_cache=None, file_format_type: FileFormatT
 
             # append record
             if config.get('add_metadata_columns') or config.get('hard_delete'):
-                records_to_load[stream][primary_key_string] = stream_utils.add_metadata_values_to_record(o)
+                records_to_load[stream][primary_key_string] = stream_utils.add_metadata_values_to_record(o, config)
             else:
                 records_to_load[stream][primary_key_string] = o['record']
 
@@ -455,7 +455,6 @@ def load_from_source(stream: str,
                      db_sync: DbSync,
                      temp_dir: str = None,
                      ) -> None:
-
     source_bucket_property = db_sync.connection_config['source_bucket_property']
     source_file_property = db_sync.connection_config['source_file_property']
     source_line_number_property = db_sync.connection_config['source_line_number_property']
@@ -478,12 +477,18 @@ def load_from_source(stream: str,
         else:
             key = db_sync.put_to_stage(filepath, stream, row_count, temp_dir=temp_dir)
 
+        sync_start_timestamp = db_sync.connection_config.get('sync_start_timestamp')
+        if sync_start_timestamp:
+            extracted_at = f"'{sync_start_timestamp}'"
+        else:
+            extracted_at = "null"
+
         metadata_columns = {
             source_bucket_property: f"'{record[source_bucket_property]}'",
             source_file_property: f"'{record[source_file_property]}'",
             source_line_number_property: "metadata$file_row_number",
-            "_sdc_batched_at": "current_timestamp()",
-            "_sdc_extracted_at": "null",
+            "_sdc_batched_at": "sysdate()",
+            "_sdc_extracted_at": extracted_at,
             "_sdc_deleted_at": "null",
         }
 

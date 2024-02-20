@@ -182,6 +182,7 @@ Full list of options in `config.json`:
 | source_bucket_property              | String  |            | (Default: None) Record property containing the source file's S3 bucket, for use in batch loading.
 | source_file_property                | String  |            | (Default: None) Record property containing the source file name, for use in batch loading.
 | source_line_number_property         | String  |            | (Default: None) Record property containing the source file line number, for use in batch loading.
+| sync_start_timestamp                | String  |            | (Default: None) Timestamp for sync start, populated in _sdc_extracted_at if add_metadata_columns is True.  Will be uniform across all persisted records.
 
 ### To run tests:
 
