@@ -544,6 +544,9 @@ def flush_records(stream: str,
             raise Exception(f"Failed to extract schema and table names from stream '{stream}'")
 
         archive_schema = stream_name_parts['schema_name']
+        if archive_schema is None:
+            raise ValueError(f"Stream name '{stream}' does not contain a schema prefix")
+
         archive_table = stream_name_parts['table_name']
         archive_tap = archive_load_files['tap']
 
