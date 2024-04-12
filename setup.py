@@ -23,7 +23,11 @@ setup(name="pipelinewise-target-snowflake",
       python_requires='>=3.7',
       install_requires=[
           'pipelinewise-singer-python==1.*',
-          'snowflake-connector-python[pandas]==3.0.4',
+          # 3.4.0 Removed dependencies on pycryptodomex and oscrypto. All connections now go through OpenSSL via the cryptography library, which was already a dependency.
+          # https://github.com/snowflakedb/snowflake-connector-python/blob/f323d22bf259a176f6c57510efd4927c52f1abb9/DESCRIPTION.md?plain=1#L37
+          # This should prevent 'Error detecting the version of libcrypto':
+          # https://github.com/wbond/oscrypto/issues/75
+          'snowflake-connector-python[pandas]==3.4.0',
           'inflection==0.5.1',
           'joblib==1.2.0',
           'boto3==1.28.20',
