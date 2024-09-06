@@ -143,7 +143,7 @@ Full list of options in `config.json`:
 | account                             | String  | Yes        | Snowflake account name (i.e. rtXXXXX.eu-central-1)            |
 | dbname                              | String  | Yes        | Snowflake Database name                                       |
 | user                                | String  | Yes        | Snowflake User                                                |
-| password                            | String  | Yes        | Snowflake Password                                            |
+| password                            | String  | No         | Snowflake Password (if absent, authenticate with browser)     |
 | warehouse                           | String  | Yes        | Snowflake virtual warehouse name                              |
 | role                                | String  | No         | Snowflake role to use. If not defined then the user's default role will be used |
 | aws_access_key_id                   | String  | No         | S3 Access Key Id. If not provided, `AWS_ACCESS_KEY_ID` environment variable or IAM role will be used |
