@@ -34,7 +34,7 @@ setup(name="pipelinewise-target-snowflake",
           # Pinning numpy to latest pre-2.0.0 version, per recommendation:
           # https://stackoverflow.com/a/78641304
           # since pandas otherwise triggers a >=2.0.0 install, which produces a set of problems (binary incompatibility
-          # for snowflake-connector-python==3.0.4, segmentation fault on macOS for more recent versions) that don't
+          # for snowflake-connector-python==3.4.0, segmentation fault on macOS for more recent versions) that don't
           # currently seem possible to fully resolve cross-platform.
           'numpy==1.26.4',
       ],
