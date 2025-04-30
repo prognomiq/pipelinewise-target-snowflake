@@ -27,7 +27,9 @@ setup(name="pipelinewise-target-snowflake",
           # https://github.com/snowflakedb/snowflake-connector-python/blob/f323d22bf259a176f6c57510efd4927c52f1abb9/DESCRIPTION.md?plain=1#L37
           # This should prevent 'Error detecting the version of libcrypto':
           # https://github.com/wbond/oscrypto/issues/75
-          'snowflake-connector-python[pandas,secure-local-storage]==3.4.0',
+          # 3.15.0 Fixes an issue with AWS certificates:
+          # https://pypi.org/project/snowflake-connector-python/3.15.0/
+          'snowflake-connector-python[pandas,secure-local-storage]==3.15.0',
           'inflection==0.5.1',
           'joblib==1.2.0',
           'boto3==1.28.20',
