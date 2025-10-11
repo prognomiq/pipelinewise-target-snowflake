@@ -306,7 +306,11 @@ class DbSync:
             }
         }
 
-        if 'password' in self.connection_config:
+        if 'private_key_file' in self.connection_config:
+            kwargs['private_key_file'] = self.connection_config['private_key_file']
+        elif 'private_key' in self.connection_config:
+            kwargs['private_key'] = self.connection_config['private_key']
+        elif 'password' in self.connection_config:
             kwargs['password'] = self.connection_config['password']
         else:
             kwargs['authenticator'] = 'externalbrowser'

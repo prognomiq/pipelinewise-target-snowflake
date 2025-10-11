@@ -143,7 +143,9 @@ Full list of options in `config.json`:
 | account                             | String  | Yes        | Snowflake account name (i.e. rtXXXXX.eu-central-1)            |
 | dbname                              | String  | Yes        | Snowflake Database name                                       |
 | user                                | String  | Yes        | Snowflake User                                                |
-| password                            | String  | No         | Snowflake Password (if absent, authenticate with browser)     |
+| password                            | String  | No         | Snowflake Password (if no authication secret supplied, authenticate with browser)     |
+| private_key                         | String  | No         | Snowflake private key (if no authication secret supplied, authenticate with browser)     |
+| private_key_file                    | String  | No         | Snowflake private key file (if no authication secret supplied, authenticate with browser)     |
 | warehouse                           | String  | Yes        | Snowflake virtual warehouse name                              |
 | role                                | String  | No         | Snowflake role to use. If not defined then the user's default role will be used |
 | aws_access_key_id                   | String  | No         | S3 Access Key Id. If not provided, `AWS_ACCESS_KEY_ID` environment variable or IAM role will be used |
@@ -192,6 +194,8 @@ Full list of options in `config.json`:
   export TARGET_SNOWFLAKE_DBNAME=<snowflake-database-name>
   export TARGET_SNOWFLAKE_USER=<snowflake-user>
   export TARGET_SNOWFLAKE_PASSWORD=<snowflake-password>
+  export TARGET_SNOWFLAKE_PRIVATE_KEY=<snowflake-private_key>
+  export TARGET_SNOWFLAKE_PRIVATE_KEY_FILE=<snowflake-private_key_file>
   export TARGET_SNOWFLAKE_WAREHOUSE=<snowflake-warehouse>
   export TARGET_SNOWFLAKE_SCHEMA=<snowflake-schema>
   export TARGET_SNOWFLAKE_AWS_ACCESS_KEY=<aws-access-key-id>
