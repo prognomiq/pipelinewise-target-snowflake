@@ -164,6 +164,13 @@ def create_query_tag(query_tag_pattern: str, database: str = None, schema: str =
     return query_tag
 
 
+def pem_to_raw_base64(pem_formatted_key):
+    lines = pem_formatted_key.split('\n')
+    data_lines = [l for l in lines if not l.startswith('-')]
+    raw_base64 = ''.join(data_lines)
+    return raw_base64
+
+
 # pylint: disable=too-many-public-methods,too-many-instance-attributes
 class DbSync:
     """DbSync class"""
@@ -309,7 +316,7 @@ class DbSync:
         if 'private_key_file' in self.connection_config:
             kwargs['private_key_file'] = self.connection_config['private_key_file']
         elif 'private_key' in self.connection_config:
-            kwargs['private_key'] = self.connection_config['private_key']
+            kwargs['private_key'] = pem_to_raw_base64(self.connection_config['private_key'])
         elif 'password' in self.connection_config:
             kwargs['password'] = self.connection_config['password']
         else:
